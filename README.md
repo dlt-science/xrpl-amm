@@ -12,7 +12,3 @@ Then in the **tests** folder, run the tests with
 ```python
 pytest tests.py
 ```
-
-# amm-xrpl
-# amm-xrpl
-# xrpl-amm
