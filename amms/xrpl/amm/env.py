@@ -104,9 +104,9 @@ class AMMi():
         SS_In = (1-TFee) * (self.W + self.W) / (2 * bal_tokenIn * self.W)
         return SS_In
 
-    def avg_slippage_tokenIn(self, bal_tokenIn: float, bal_tokenOut: float) -> float:
+    def avg_slippage_tokenIn(self, bal_tokenIn: float, bal_tokenOut: float, delta_tokenOut: float, TFee: float) -> float:
         S_delta_tokenIn = self.slippage_slope_tokenIn(
-            self, bal_tokenIn) * self.delta_tokenIn_Swap(bal_tokenIn, bal_tokenOut)
+            bal_tokenIn, TFee) * self.delta_tokenIn_Swap(bal_tokenIn, bal_tokenOut, delta_tokenOut, TFee)
         return S_delta_tokenIn
 
     def slippage_slope_tokenOut(self, bal_tokenIn: float) -> float:
@@ -114,9 +114,9 @@ class AMMi():
         SS_Out = (self.W + self.W) / (2 * bal_tokenIn * self.W)
         return SS_Out
 
-    def avg_slippage_tokenOut(self, bal_tokenIn: float, bal_tokenOut: float) -> float:
+    def avg_slippage_tokenOut(self, bal_tokenIn: float, bal_tokenOut: float, delta_tokenIn: float, TFee: float) -> float:
         S_delta_tokenOut = self.slippage_slope_tokenOut(
-            self, bal_tokenIn) * self.delta_tokenOut_Swap(bal_tokenIn, bal_tokenOut)
+            bal_tokenIn) * self.delta_tokenOut_Swap(bal_tokenIn, bal_tokenOut, delta_tokenIn, TFee)
         return S_delta_tokenOut
 
     # spot-price of asset/token Out relative to asset/token In
