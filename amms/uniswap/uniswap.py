@@ -145,3 +145,84 @@ class Uniswap_amm(Amm):
         slippage = (effective_price - SP_price) / SP_price
 
         return final_amount, slippage
+
+    def delta_tokenIn_given_spotprices(self, balAssetIn: float, pre_sp: float, post_sp: float) -> float:
+        # pre_sp = spot price before trade
+        # post_sp = spot price after trade
+        W = 0.5
+        delta_tokenIn = balAssetIn * \
+            ((post_sp/pre_sp)**(W/(W+W)) - 1)
+        return delta_tokenIn
+
+    def delta_tokenOut_Swap(self, balAssetIn: float, balAssetOut: float, delta_tokenIn: float) -> float:
+        # delta_tokenIn = amount of asset to swap in
+        W = 0.5
+        delta_tokenOut = balAssetOut * \
+            (1 - (balAssetIn/(balAssetIn +
+                              delta_tokenIn*(1-self.fee_rate)))**(W/W))
+        return delta_tokenOut
+
+    # swap given the desired spot price the user wants token Out to reach
+    def swap_given_postSP(self, assetIn: str, balAssetIn: float, balAssetOut: float, pre_sp: float, post_sp: float, amountIn=None, skip_pool_update=False):
+        if amountIn is None:
+            delta_tokenIn = self.delta_tokenIn_given_spotprices(
+                balAssetIn, pre_sp, post_sp)
+        elif amountIn is not None:
+            delta_tokenIn = amountIn
+        delta_tokenOut = self.delta_tokenOut_Swap(
+            balAssetIn, balAssetOut, delta_tokenIn)
+
+        if delta_tokenIn > 0 and delta_tokenOut > 0:
+            if assetIn == 'A':
+                if self.asset_B_amount > delta_tokenOut:
+                    if skip_pool_update:
+                        return delta_tokenIn, delta_tokenOut
+                    else:
+                        self.asset_B_amount -= delta_tokenOut
+                        self.asset_A_amount += delta_tokenIn
+                        return delta_tokenIn, delta_tokenOut
+                else:
+                    # pass
+                    # FAIL TX
+                    raise Exception("Not enough tokens")
+            elif assetIn == 'B':
+                if self.asset_A_amount > delta_tokenOut:
+                    if skip_pool_update:
+                        return delta_tokenIn, delta_tokenOut
+                    else:
+                        self.asset_A_amount -= delta_tokenOut
+                        self.asset_B_amount += delta_tokenIn
+                        return delta_tokenIn, delta_tokenOut
+                else:
+                    # pass
+                    # FAIL TX
+                    raise Exception("Not enough tokens")
+
+        elif delta_tokenIn <= 0 and delta_tokenOut <= 0:
+            if assetIn == 'A':
+                if self.asset_A_amount > delta_tokenOut:
+                    if skip_pool_update:
+                        return delta_tokenIn, delta_tokenOut
+                    else:
+                        self.asset_A_amount -= delta_tokenOut
+                        self.asset_B_amount += delta_tokenIn
+                        return delta_tokenIn, delta_tokenOut
+                else:
+                    # pass
+                    # FAIL TX
+                    raise Exception("Not enough tokens")
+            elif assetIn == 'B':
+                if self.asset_B_amount > delta_tokenOut:
+                    if skip_pool_update:
+                        return delta_tokenIn, delta_tokenOut
+                    else:
+                        self.asset_B_amount -= delta_tokenOut
+                        self.asset_A_amount += delta_tokenIn
+                        return delta_tokenIn, delta_tokenOut
+                else:
+                    # pass
+                    # FAIL TX
+                    raise Exception("Not enough tokens")
+        else:
+            # delta_tokenIn and delta_tokenOut can't have different signs
+            raise Exception("Error?")

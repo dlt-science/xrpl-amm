@@ -1,4 +1,4 @@
-from amm.env import AMMi, AMMVote, User
+from amms.xrpl.amm.env import AMMi, AMMVote, User
 from sympy import Symbol
 from sympy.solvers import solve
 
@@ -330,20 +330,45 @@ class Swap(AMMi):
             raise Exception("Not enough tokens")
 
     # swap given the desired spot price the user wants token Out to reach
-    def swap_given_postSP(self, assetIn: str, assetOut: str, post_sp: float):
-        # pre_sp = spot-price pre trade
-        delta_tokenIn = self.delta_tokenIn_given_spotprices(
-            assetIn, assetOut, post_sp)
+    def swap_given_postSP(self, assetIn: str, assetOut: str, balAssetIn: float, balAssetOut: float, pre_sp: float, post_sp: float, amountIn=None, skip_pool_update=False):
+        if amountIn is None:
+            delta_tokenIn = self.delta_tokenIn_given_spotprices(
+                balAssetIn, pre_sp, post_sp)
+        elif amountIn is not None:
+            delta_tokenIn = amountIn
         delta_tokenOut = self.delta_tokenOut_Swap(
-            self.ammi.assets[assetIn], self.ammi.assets[assetOut], delta_tokenIn, self.TFee)
-        if self.ammi.assets[assetOut] > delta_tokenOut and self.user.assets[assetIn] > delta_tokenIn:
-            self.ammi.remove_asset(assetOut, delta_tokenOut)
-            self.ammi.add_asset(assetIn, delta_tokenIn)
-            self.user.remove_asset(assetIn, delta_tokenIn)
-            self.user.add_asset(assetOut, delta_tokenOut)
+            balAssetIn, balAssetOut, delta_tokenIn, self.TFee)
+        if delta_tokenIn > 0 and delta_tokenOut > 0:
+            if self.ammi.assets[assetOut] > delta_tokenOut and self.user.assets[assetIn] > delta_tokenIn:
+                if skip_pool_update:
+                    return delta_tokenIn, delta_tokenOut
+                else:
+                    self.ammi.remove_asset(assetOut, delta_tokenOut)
+                    self.ammi.add_asset(assetIn, delta_tokenIn)
+                    self.user.remove_asset(assetIn, delta_tokenIn)
+                    self.user.add_asset(assetOut, delta_tokenOut)
+                    return delta_tokenIn, delta_tokenOut
+            else:
+                # FAIL TX
+                # pass
+                raise Exception("Not enough tokens")
+        elif delta_tokenIn <= 0 and delta_tokenOut <= 0:
+            if self.ammi.assets[assetIn] > delta_tokenIn and self.user.assets[assetOut] > delta_tokenOut:
+                if skip_pool_update:
+                    return delta_tokenIn, delta_tokenOut
+                else:
+                    self.user.remove_asset(assetOut, delta_tokenOut)
+                    self.user.add_asset(assetIn, delta_tokenIn)
+                    self.ammi.remove_asset(assetIn, delta_tokenIn)
+                    self.ammi.add_asset(assetOut, delta_tokenOut)
+                    return delta_tokenIn, delta_tokenOut
+            else:
+                # FAIL TX
+                # pass
+                raise Exception("Not enough tokens")
         else:
-            # FAIL TX
-            raise Exception("Not enough tokens")
+            # delta_tokenIn and delta_tokenOut can't have different signs
+            raise Exception("Error?")
 
 
 # ---------------------------   AMMBid Class       ---------------------------

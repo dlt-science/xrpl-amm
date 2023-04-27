@@ -82,19 +82,19 @@ class AMMi():
 
     # --------------------------- SWAPS ---------------------------
 
-    def delta_tokenOut_Swap(self, bal_tokenIn: float, bal_tokenOut: float, delta_tokenIn: float, TFee: float) -> float:
+    def delta_tokenOut_Swap(self, balAssetIn: float, balAssetOut: float, delta_tokenIn: float, TFee: float) -> float:
         # delta_tokenIn = amount of asset to swap in
-        return bal_tokenOut * (1 - (bal_tokenIn/(bal_tokenIn + delta_tokenIn*(1-TFee)))**(self.W/self.W))
+        return balAssetOut * (1 - (balAssetIn/(balAssetIn + delta_tokenIn*(1-TFee)))**(self.W/self.W))
 
     def delta_tokenIn_Swap(self, bal_tokenIn: float, bal_tokenOut: float, delta_tokenOut: float, TFee: float) -> float:
         # delta_tokenOut = amount of asset to swap out
         return bal_tokenIn * ((bal_tokenOut/(bal_tokenOut-delta_tokenOut))**(self.W/self.W) - 1) * 1/(1-TFee)
 
-    def delta_tokenIn_given_spotprices(self, assetIn: str, assetOut: str, post_sp: float) -> float:
+    def delta_tokenIn_given_spotprices(self, balAssetIn: str, pre_sp: float, post_sp: float) -> float:
         # pre_sp = spot price before trade
         # post_sp = spot price after trade,  to be provided by user
-        pre_sp = self.spot_price(assetIn, assetOut)
-        delta_tokenIn = self.ammi.assets[assetIn] * \
+        # pre_sp = self.spot_price(assetIn, assetOut)
+        delta_tokenIn = balAssetIn * \
             ((post_sp/pre_sp)**(self.W/(self.W+self.W)) - 1)
         return delta_tokenIn
 
@@ -129,6 +129,11 @@ class AMMi():
     def spot_price1(self, assetIn: str, assetOut: str) -> float:
         sp = (self.assets[assetIn]/self.W) / \
             (self.assets[assetOut]/self.W) * 1/(1 - self.TFee)
+        return sp
+
+    def spot_price_0fee(self, assetIn: str, assetOut: str) -> float:
+        sp = (self.assets[assetIn]/self.W) / \
+            (self.assets[assetOut]/self.W) * 1/(1 - 0)
         return sp
 
     # --------------------------- TRADING FEE ---------------------------
