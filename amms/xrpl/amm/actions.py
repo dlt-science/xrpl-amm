@@ -331,11 +331,8 @@ class Swap(AMMi):
 
     # swap given the desired spot price the user wants token Out to reach
     def swap_given_postSP(self, assetIn: str, assetOut: str, balAssetIn: float, balAssetOut: float, pre_sp: float, post_sp: float, amountIn=None, skip_pool_update=False):
-        if amountIn is None:
-            delta_tokenIn = self.delta_tokenIn_given_spotprices(
-                balAssetIn, pre_sp, post_sp)
-        elif amountIn is not None:
-            delta_tokenIn = amountIn
+        delta_tokenIn = amountIn or self.delta_tokenIn_given_spotprices(
+            balAssetIn, pre_sp, post_sp)
         delta_tokenOut = self.delta_tokenOut_Swap(
             balAssetIn, balAssetOut, delta_tokenIn, self.TFee)
         if delta_tokenIn > 0 and delta_tokenOut > 0:
@@ -426,6 +423,8 @@ class AMMBid(AMMVote):
             self.ammi.B = bidPrice
             self.ammi.AuctionSlot = {'user': self.user,
                                      't': t, 'discountedFee': 0, 'price': bidPrice}
+            self.ammi.remove_LP(
+                self.ammi.AuctionSlot['user'].user_name, bidPrice)
             self.ammi.B = bidPrice
         else:
             self.ammi.AuctionSlot = {'user': self.user,

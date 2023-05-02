@@ -88,7 +88,7 @@ class Uniswap_amm(Amm):
 
         return A_to_withdraw, B_to_withdraw
 
-    def check_SP_price(self, asset_type):
+    def check_SP_price(self, asset_type, other_asset, no_fee=False):
         # input the asset type (str: 'A' or 'B')
         # return the reference/spot price (float) for this type of asset
 
@@ -163,12 +163,9 @@ class Uniswap_amm(Amm):
         return delta_tokenOut
 
     # swap given the desired spot price the user wants token Out to reach
-    def swap_given_postSP(self, assetIn: str, balAssetIn: float, balAssetOut: float, pre_sp: float, post_sp: float, amountIn=None, skip_pool_update=False):
-        if amountIn is None:
-            delta_tokenIn = self.delta_tokenIn_given_spotprices(
-                balAssetIn, pre_sp, post_sp)
-        elif amountIn is not None:
-            delta_tokenIn = amountIn
+    def swap_given_postSP(self, assetIn: str, assetOut: str, balAssetIn: float, balAssetOut: float, pre_sp: float, post_sp: float, amountIn=None, skip_pool_update=False):
+        delta_tokenIn = amountIn or self.delta_tokenIn_given_spotprices(
+            balAssetIn, pre_sp, post_sp)
         delta_tokenOut = self.delta_tokenOut_Swap(
             balAssetIn, balAssetOut, delta_tokenIn)
 

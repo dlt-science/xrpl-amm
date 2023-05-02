@@ -16,7 +16,7 @@ class AMMi():
         self.TFee = 0.005       # TFee = trading fee
         self.curr_codes = []    # currency codes
         self.LPs = {}           # liquidity providers (users)
-        self.B = 0              # price at which the last slot was bought
+        self.B = None              # price at which the last slot was bought
         self.AuctionSlot = {'user': '', 't': 0,
                             'discountedFee': 0, 'price': 0}
         self.MinSlotPrice = 2
@@ -126,14 +126,13 @@ class AMMi():
         return sp
 
     # use this to get spot price through an AMM object (i.e. amm.spot_price1(...))
-    def spot_price1(self, assetIn: str, assetOut: str) -> float:
-        sp = (self.assets[assetIn]/self.W) / \
-            (self.assets[assetOut]/self.W) * 1/(1 - self.TFee)
-        return sp
-
-    def spot_price_0fee(self, assetIn: str, assetOut: str) -> float:
-        sp = (self.assets[assetIn]/self.W) / \
-            (self.assets[assetOut]/self.W) * 1/(1 - 0)
+    def check_SP_price(self, asset: str, other_asset: str, no_fee=False) -> float:
+        if no_fee:
+            TFee = 0
+        else:
+            TFee = self.TFee
+        sp = (self.assets[other_asset]/self.W) / \
+            (self.assets[asset]/self.W) * 1/(1 - TFee)
         return sp
 
     # --------------------------- TRADING FEE ---------------------------
