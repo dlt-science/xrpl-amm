@@ -377,8 +377,9 @@ class AMMBid(AMMVote):
 
     # possible values for t: 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, ..., 0.9, 0.95, 1
     def compute_price(self, t: float) -> float:
-        minBidPrice = 0
+        # minBidPrice = 0
         if (not self.ammi.AuctionSlot['user']) or (t == 1):
+            self.ammi.MinSlotPrice = self.ammi.assets['LPTokens'] * 0.001/100
             minBidPrice = self.ammi.MinSlotPrice
         elif t == 0.05:
             minBidPrice = self.ammi.B * 1.05 + self.ammi.MinSlotPrice
@@ -387,34 +388,42 @@ class AMMBid(AMMVote):
                 (1-t**60) + self.ammi.MinSlotPrice
         return minBidPrice
 
-    def bid(self, t: float, min_price='', max_price=''):
+    def bid(self, t: float, min_price=None, max_price=None, skip=False):
         minBidPrice = self.compute_price(t)
         if minBidPrice > self.user.assets['LPTokens']:
-            raise Exception('Not enough tokens')
+            # raise Exception('Not enough tokens')
+            bidPrice = None
 
         if min_price:
             if float(min_price) > self.user.assets['LPTokens']:
-                raise Exception('Not enough tokens')
+                # raise Exception('Not enough tokens')
+                bidPrice = None
         if max_price:
             if float(max_price) > self.user.assets['LPTokens']:
-                raise Exception('Not enough tokens')
+                # raise Exception('Not enough tokens')
+                bidPrice = None
 
         bidPrice = minBidPrice
         if min_price and max_price:
-            bidPrice = float(max_price)
+            if min_price < minBidPrice < max_price:
+                bidPrice = minBidPrice
+            elif minBidPrice < min_price:
+                bidPrice = min_price
+            else:
+                bidPrice = None
+            # FAIL
         elif min_price and not max_price:
-            if min_price <= minBidPrice:
-                bidPrice = minBidPrice
-            else:
-                bidPrice = float(min_price)
+            bidPrice = max(minBidPrice, min_price)
         elif max_price and not min_price:
-            if max_price >= minBidPrice:
-                bidPrice = minBidPrice
-            else:
-                bidPrice = float(max_price)
+            bidPrice = minBidPrice if max_price >= minBidPrice else None
+            # FAIL
 
-        if self.ammi.AuctionSlot['user'] and self.ammi.AuctionSlot['t'] < t:
-            refund = (1-t) * self.ammi.B
+        if bidPrice and skip == True:
+            return bidPrice
+
+        # if bidPrice and self.ammi.AuctionSlot['user'] and self.ammi.AuctionSlot['t'] < t:
+        if bidPrice and self.ammi.AuctionSlot['user']:
+            refund = 0 if t == 1 else (1-t)*self.ammi.B
             self.ammi.AuctionSlot['user'].add_asset('LPTokens', refund)
             self.ammi.add_LP(self.ammi.AuctionSlot['user'].user_name, refund)
             # burn the remaining LPTokens
@@ -426,7 +435,9 @@ class AMMBid(AMMVote):
             self.ammi.remove_LP(
                 self.ammi.AuctionSlot['user'].user_name, bidPrice)
             self.ammi.B = bidPrice
-        else:
+            t = 0.05
+            # print(self.ammi.B)
+        elif bidPrice and not self.ammi.AuctionSlot['user']:
             self.ammi.AuctionSlot = {'user': self.user,
                                      't': t, 'discountedFee': 0, 'price': bidPrice}
             self.ammi.B = bidPrice
@@ -434,4 +445,6 @@ class AMMBid(AMMVote):
             self.ammi.remove_asset('LPTokens', bidPrice)
             self.ammi.remove_LP(self.user.user_name, bidPrice)
             self.user.remove_asset('LPTokens', bidPrice)
+            t = 0.05
         self.monitor_VoteSlots()
+        return bidPrice

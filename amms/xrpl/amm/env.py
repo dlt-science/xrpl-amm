@@ -182,18 +182,18 @@ class AMMVote(AMMi):
             else:
                 if len(self.ammi.VoteSlots) < 8:
                     self.ammi.VoteSlots += [vote_slot]
-                    self.ammi.voters += [self.user.user_name]
+                    self.ammi.voters.append(self.user.user_name)
                     self.trading_fee()
                 else:
                     vweights = []
                     for voteEntry in self.ammi.VoteSlots:
-                        vweights += [voteEntry['vote_weight']]
+                        vweights.append(voteEntry['vote_weight'])
                     min_vweight_index = vweights.index(min(vweights))
                     if self.ammi.VoteSlots[min_vweight_index]['vote_weight'] < vote_weight:
                         self.ammi.voters.remove(
                             self.ammi.VoteSlots[min_vweight_index]['user'])
                         self.ammi.VoteSlots[min_vweight_index] = vote_slot
-                        self.ammi.voters += [self.user.user_name]
+                        self.ammi.voters.append(self.user.user_name)
                         self.trading_fee()
                     else:
                         # FAIL TX
