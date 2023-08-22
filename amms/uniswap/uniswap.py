@@ -20,12 +20,12 @@ class Amm:
 
 
 class Uniswap_amm(Amm):
-
-    def __init__(self, fee_rate, asset_A_amount, asset_B_amount, initial_LP_token_number):
+    def __init__(
+        self, fee_rate, asset_A_amount, asset_B_amount, initial_LP_token_number
+    ):
         # initialize the Uniswap_amm
 
-        super(Uniswap_amm, self).__init__(
-            fee_rate, asset_A_amount, asset_B_amount)
+        super(Uniswap_amm, self).__init__(fee_rate, asset_A_amount, asset_B_amount)
         self.total_LP_token = initial_LP_token_number
         self.constant = self.asset_A_amount * self.asset_B_amount
 
@@ -43,29 +43,37 @@ class Uniswap_amm(Amm):
 
         # db = Bda/A
         # da = Adb/B
-        if type_of_added_asset == 'A':
-            amount_of_added_B_asset = self.asset_B_amount * \
-                amount_of_added_asset / self.asset_A_amount
+        if type_of_added_asset == "A":
+            amount_of_added_B_asset = (
+                self.asset_B_amount * amount_of_added_asset / self.asset_A_amount
+            )
             self.asset_A_amount += amount_of_added_asset
             self.asset_B_amount += amount_of_added_B_asset
 
             # S = (L1-L0)/L0 * T
             total_liquidity_after = self.total_liquidity()
             number_of_new_tokens = (
-                total_liquidity_after - total_liquidity_before)/total_liquidity_before * self.total_LP_token
+                (total_liquidity_after - total_liquidity_before)
+                / total_liquidity_before
+                * self.total_LP_token
+            )
             self.total_LP_token += number_of_new_tokens
             return amount_of_added_B_asset, number_of_new_tokens
 
-        elif type_of_added_asset == 'B':
-            amount_of_added_A_asset = self.asset_A_amount * \
-                amount_of_added_asset / self.asset_B_amount
+        elif type_of_added_asset == "B":
+            amount_of_added_A_asset = (
+                self.asset_A_amount * amount_of_added_asset / self.asset_B_amount
+            )
             self.asset_B_amount += amount_of_added_asset
             self.asset_A_amount += amount_of_added_A_asset
 
             # S = (L1-L0)/L0 * T
             total_liquidity_after = self.total_liquidity()
             number_of_new_tokens = (
-                total_liquidity_after - total_liquidity_before)/total_liquidity_before * self.total_LP_token
+                (total_liquidity_after - total_liquidity_before)
+                / total_liquidity_before
+                * self.total_LP_token
+            )
             self.total_LP_token += number_of_new_tokens
             return amount_of_added_A_asset, number_of_new_tokens
 
@@ -88,16 +96,16 @@ class Uniswap_amm(Amm):
 
         return A_to_withdraw, B_to_withdraw
 
-    def check_SP_price(self, asset_type, other_asset, no_fee=False):
+    def spot_price(self, asset_type, other_asset, discounted_fee=False):
         # input the asset type (str: 'A' or 'B')
         # return the reference/spot price (float) for this type of asset
 
-        trans_fee_multiplier = 1 / (1-self.fee_rate)
+        trans_fee_multiplier = 1 / (1 - self.fee_rate)
 
-        if asset_type == 'A':
-            return self.asset_B_amount/self.asset_A_amount * trans_fee_multiplier
-        elif asset_type == 'B':
-            return self.asset_A_amount/self.asset_B_amount * trans_fee_multiplier
+        if asset_type == "A":
+            return self.asset_B_amount / self.asset_A_amount * trans_fee_multiplier
+        elif asset_type == "B":
+            return self.asset_A_amount / self.asset_B_amount * trans_fee_multiplier
         else:
             raise Exception("Wrong input! Enter eithor A or B!")
 
@@ -110,10 +118,11 @@ class Uniswap_amm(Amm):
 
         # dx = Xdy/(Y-dy)
 
-        if target_asset_type == 'A':
+        if target_asset_type == "A":
             # you need to pay B in this case
-            amount_without_fee = self.asset_B_amount * \
-                amount / (self.asset_A_amount - amount)
+            amount_without_fee = (
+                self.asset_B_amount * amount / (self.asset_A_amount - amount)
+            )
             # update the pool
             self.asset_A_amount -= amount
             self.asset_B_amount += amount_without_fee
@@ -124,10 +133,11 @@ class Uniswap_amm(Amm):
             self.asset_B_amount += fee
             self.constant = self.asset_A_amount * self.asset_B_amount
 
-        elif target_asset_type == 'B':
+        elif target_asset_type == "B":
             # you need to pay A in this case
-            amount_without_fee = self.asset_A_amount * \
-                amount / (self.asset_B_amount - amount)
+            amount_without_fee = (
+                self.asset_A_amount * amount / (self.asset_B_amount - amount)
+            )
             # update the pool
             self.asset_A_amount += amount_without_fee
             self.asset_B_amount -= amount
@@ -141,83 +151,130 @@ class Uniswap_amm(Amm):
         else:
             raise Exception("Wrong input! Enter eithor A or B!")
 
-        effective_price = final_amount/amount
-        slippage = (effective_price - SP_price) / SP_price
+        effective_price = final_amount / amount
+        slippage = (float(effective_price) - float(SP_price)) / float(SP_price)
 
-        return final_amount, slippage
+        # return final_amount, slippage
+        return fee
 
-    def delta_tokenIn_given_spotprices(self, balAssetIn: float, pre_sp: float, post_sp: float) -> float:
+    def delta_tokenIn_given_spotprices(
+        self, balAssetIn: float, pre_sp: float, post_sp: float
+    ) -> float:
         # pre_sp = spot price before trade
         # post_sp = spot price after trade
         W = 0.5
-        delta_tokenIn = balAssetIn * \
-            ((post_sp/pre_sp)**(W/(W+W)) - 1)
+        delta_tokenIn = balAssetIn * ((post_sp / pre_sp) ** (W / (W + W)) - 1)
         return delta_tokenIn
 
-    def delta_tokenOut_Swap(self, balAssetIn: float, balAssetOut: float, delta_tokenIn: float) -> float:
+    def delta_tokenOut_Swap(
+        self, balAssetIn: float, balAssetOut: float, delta_tokenIn: float
+    ) -> float:
         # delta_tokenIn = amount of asset to swap in
         W = 0.5
-        delta_tokenOut = balAssetOut * \
-            (1 - (balAssetIn/(balAssetIn +
-                              delta_tokenIn*(1-self.fee_rate)))**(W/W))
+        delta_tokenOut = balAssetOut * (
+            1
+            - (balAssetIn / (balAssetIn + delta_tokenIn * (1 - self.fee_rate)))
+            ** (W / W)
+        )
         return delta_tokenOut
 
     # swap given the desired spot price the user wants token Out to reach
-    def swap_given_postSP(self, assetIn: str, assetOut: str, balAssetIn: float, balAssetOut: float, pre_sp: float, post_sp: float, amountIn=None, skip_pool_update=False):
-        delta_tokenIn = amountIn or self.delta_tokenIn_given_spotprices(
-            balAssetIn, pre_sp, post_sp)
+    def swap_given_postSP(
+        self,
+        assetIn: str,
+        assetOut: str,
+        balAssetIn: float,
+        balAssetOut: float,
+        pre_sp: float,
+        post_sp: float,
+        amount_in=None,
+        skip_pool_update=False,
+    ):
+        delta_tokenIn = amount_in or self.delta_tokenIn_given_spotprices(
+            balAssetIn, pre_sp, post_sp
+        )
+
         delta_tokenOut = self.delta_tokenOut_Swap(
-            balAssetIn, balAssetOut, delta_tokenIn)
+            balAssetIn, balAssetOut, delta_tokenIn
+        )
 
         if delta_tokenIn > 0 and delta_tokenOut > 0:
-            if assetIn == 'A':
+            if assetIn == "A":
                 if self.asset_B_amount > delta_tokenOut:
                     if skip_pool_update:
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                     else:
                         self.asset_B_amount -= delta_tokenOut
                         self.asset_A_amount += delta_tokenIn
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                 else:
-                    # pass
                     # FAIL TX
                     raise Exception("Not enough tokens")
-            elif assetIn == 'B':
+            elif assetIn == "B":
                 if self.asset_A_amount > delta_tokenOut:
                     if skip_pool_update:
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                     else:
                         self.asset_A_amount -= delta_tokenOut
                         self.asset_B_amount += delta_tokenIn
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                 else:
-                    # pass
                     # FAIL TX
                     raise Exception("Not enough tokens")
 
         elif delta_tokenIn <= 0 and delta_tokenOut <= 0:
-            if assetIn == 'A':
+            if assetIn == "A":
                 if self.asset_A_amount > delta_tokenOut:
                     if skip_pool_update:
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                     else:
                         self.asset_A_amount -= delta_tokenOut
                         self.asset_B_amount += delta_tokenIn
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                 else:
-                    # pass
                     # FAIL TX
                     raise Exception("Not enough tokens")
-            elif assetIn == 'B':
+            elif assetIn == "B":
                 if self.asset_B_amount > delta_tokenOut:
                     if skip_pool_update:
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                     else:
                         self.asset_B_amount -= delta_tokenOut
                         self.asset_A_amount += delta_tokenIn
-                        return delta_tokenIn, delta_tokenOut
+                        return (
+                            delta_tokenIn,
+                            delta_tokenOut,
+                            delta_tokenIn * self.fee_rate,
+                        )
                 else:
-                    # pass
                     # FAIL TX
                     raise Exception("Not enough tokens")
         else:
