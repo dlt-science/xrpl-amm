@@ -15,7 +15,7 @@ import itertools
 class Simulator(SimulatorComputations, ProcessTransactions):
 
     def normal_user_action(self, prev_action: str) -> str:
-        """Gets and prints the spreadsheet's header columns.
+        """Determine if the user should buy, sell or pass.
 
         There's an 80% chance that a normal user performs an action (buy or sell).
         Out of the 80%, if the previous user bought, the current user has a 60% probability
@@ -25,7 +25,7 @@ class Simulator(SimulatorComputations, ProcessTransactions):
             prev_action (str): The previous user's action.
 
         Returns:
-            str: The action the current user will perform (buy, sell, pass).
+            str: The action the user will perform (buy, sell, pass).
         """
 
         # probability that the user performs an action (either buy or sell)
