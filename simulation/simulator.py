@@ -267,9 +267,7 @@ class Simulator(SimulatorComputations, ProcessTransactions):
 
     def run_simulation(self, initial_A_price: float, external_prices: list, xrpl_block_conf: int, eth_block_conf: int, xrpl_fees: float,
                        eth_fees: float, normal_users: int, arbitrageurs: int, safe_profit_margin: float, max_slippage: float, iterations: int):
-        """Simulate normal users placing trades.
-
-        The exact same trades are added to the 3 AMMs.
+        """Simulate XRPL & Uniswap AMMs with a reference market.
 
         Args:
             initial_A_price (float): AMM Asset A price we wish the simulation to begin with.
