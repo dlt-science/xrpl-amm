@@ -8,12 +8,12 @@ class AMMi:
     # W = weight of the deposit asset in the pool (W_A = W_B)
     W = 0.5
 
-    def __init__(self, ammi):
+    def __init__(self, ammi, TFee=0.005):
         self.ammi = ammi  # AMM instance (id)
         self.assets = {"LPTokens": 0}
         self.VoteSlots = []
         self.voters = []
-        self.TFee = 0.005  # TFee = trading fee
+        self.TFee = TFee  # TFee = trading fee
         self.curr_codes = []  # currency codes
         self.LPs = {}  # liquidity providers (users)
         self.auction_slot_price = None
@@ -307,10 +307,10 @@ class User:
         self.assets[asset] -= amount
 
     def createAMM(
-        self, ammID: int, asset1: str, asset2: str, amount1: float, amount2: float
+        self, ammID: int, asset1: str, asset2: str, amount1: float, amount2: float, TFee: float=0.005
     ) -> AMMi:
         if (self.assets[asset1] >= amount1) and (self.assets[asset2] >= amount2):
-            ammi = AMMi(ammID)
+            ammi = AMMi(ammID, TFee)
             ammi.add_asset(asset1, amount1)
             ammi.add_asset(asset2, amount2)
             ammi.curr_codes += [asset1, asset2]

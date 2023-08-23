@@ -266,7 +266,7 @@ class Simulator(SimulatorComputations, ProcessTransactions):
         pass
 
     def run_simulation(self, initial_A_price: float, external_prices: list, xrpl_block_conf: int, eth_block_conf: int, xrpl_fees: float,
-                       eth_fees: float, normal_users: int, arbitrageurs: int, safe_profit_margin: float, max_slippage: float, iterations: int):
+                       eth_fees: float, tfee_rate: float, normal_users: int, arbitrageurs: int, safe_profit_margin: float, max_slippage: float, iterations: int):
         """Simulate XRPL & Uniswap AMMs with a reference market.
 
         Args:
@@ -277,6 +277,7 @@ class Simulator(SimulatorComputations, ProcessTransactions):
             eth_block_conf (int): Ethereum block confirmation time.
             xrpl_fees (float): XRPL network fees.
             eth_fees (float): Ethereum network fees.
+            tfee_rate (float): AMMs trading fee.
             normal_users (int): Number of normal users to simulate.
             arbitrageurs (int): Number of arbitrageurs to simulate.
             safe_profit_margin (float): Arbitrageur's minimum profit margin accepted.
@@ -291,7 +292,7 @@ class Simulator(SimulatorComputations, ProcessTransactions):
 
         initial_A_reserve = 1000
         initial_B_reserve = self.compute_initial_B_reserve(
-            initial_A_price, 0.005)
+            initial_A_price, tfee_rate)
 
         xrplCAM_profits_total, xrpl_profits_total, uniswap_profits_total = [], [], []
         xrplCAM_arbit_txs_total, xrpl_arbit_txs_total, uniswap_arbit_txs_total = [], [], []
@@ -337,14 +338,14 @@ class Simulator(SimulatorComputations, ProcessTransactions):
                           'XRP': 1000, 'A': 1e450, 'B': 1e450})
             # arbit = arbitrageur on xrpl
             xrpl_amm = bob.createAMM(
-                ammID=1, asset1='A', asset2='B', amount1=initial_A_reserve, amount2=initial_B_reserve)
+                ammID=1, asset1='A', asset2='B', amount1=initial_A_reserve, amount2=initial_B_reserve, TFee=tfee_rate)
 
             xrpl_arbits_swaps_obj = self.populate_xrpl_arbs(
                 arbitrageurs, xrpl_amm, is_xrplCAM=False)
 
             # arbit = arbitrageur with no trading fee on xrpl
             xrplCAM = bobCAM.createAMM(ammID=2, asset1='A', asset2='B', amount1=initial_A_reserve/(
-                arbitrageurs+1), amount2=initial_B_reserve/(arbitrageurs+1))
+                arbitrageurs+1), amount2=initial_B_reserve/(arbitrageurs+1), TFee=tfee_rate)
 
             xrplCAM_arbits_deposits_obj, xrplCAM_arbits_swaps_obj, xrplCAM_arbits_bids_obj = self.populate_xrpl_arbs(
                 arbitrageurs, xrplCAM, is_xrplCAM=True)
@@ -358,7 +359,7 @@ class Simulator(SimulatorComputations, ProcessTransactions):
             bobCAM_swaps = Swap(bobCAM, xrplCAM)
 
             # uniswap AMM
-            uniswap_amm = Uniswap_amm(fee_rate=0.005, asset_A_amount=initial_A_reserve,
+            uniswap_amm = Uniswap_amm(tfee_rate, asset_A_amount=initial_A_reserve,
                                       asset_B_amount=initial_B_reserve, initial_LP_token_number=1000)
 
             xrplCAM_profits, xrpl_profits, uniswap_profits = [], [], []
