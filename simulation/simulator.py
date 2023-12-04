@@ -509,15 +509,6 @@ class Simulator(SimulatorComputations, ProcessTransactions):
                 user_name="bobCAM", assets={"XRP": 1000, "A": 1e450, "B": 1e450}
             )
 
-            # xrpl_amm = bob.createAMM(
-            #     ammID=1,
-            #     asset1="A",
-            #     asset2="B",
-            #     amount1=initial_A_reserve,
-            #     amount2=initial_B_reserve,
-            #     TFee=tfee_rate,
-            # )
-
             if with_cases:
                 xrpl_amm = bob.createAMM(
                     ammID=1,
