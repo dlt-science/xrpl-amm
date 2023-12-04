@@ -366,7 +366,7 @@ class Swap(AMMi):
                 self.ammi.add_asset(assetIn, delta_tokenIn)
                 self.user.remove_asset(assetIn, delta_tokenIn)
                 self.user.add_asset(assetOut, amount_out)
-                return delta_tokenIn * self.TFee
+                return delta_tokenIn, amount_out, delta_tokenIn * self.TFee
             else:
                 # FAIL TX
                 raise Exception("Not enough tokens")

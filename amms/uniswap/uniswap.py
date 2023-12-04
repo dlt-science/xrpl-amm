@@ -155,7 +155,7 @@ class Uniswap_amm(Amm):
         slippage = (float(effective_price) - float(SP_price)) / float(SP_price)
 
         # return final_amount, slippage
-        return fee
+        return final_amount, amount, fee
 
     def delta_tokenIn_given_spotprices(
         self, balAssetIn: float, pre_sp: float, post_sp: float
