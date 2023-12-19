@@ -1,0 +1,31 @@
+- External Price Data:
+    - Time Steps: 4001
+    - Drift/Expected Return (mu): 0.2
+    - Volatility (sigma): 0.5
+
+- XRPL Block Time: 4
+- Ethereum Block Time: 12
+
+- XRPL Fees: 0.00075 USDC
+- Ethereum Fees: 5 USDC
+
+- Safe Profit Margin: 2%
+- Max. Slippage: 5%
+
+- Iterations: 10
+
+Summary of Results:
+    • Arbitrageurs' Profitability:
+        - Arbitrageurs are more profitable on XRPL 90% of the time.
+        - Arbitrageurs are more profitable on XRPL-CAM 100% of the time.
+        - Arbitrageurs are more profitable on XRPL-CAM than XRPL 100% of the time.
+
+    • LPs Returns:
+        - LPs earn more on XRPL 60% of the time.
+        - LPs earn more on XRPL-CAM 100% of the time.
+        - LPs earn more on XRPL-CAM than XRPL 100% of the time.
+
+    • Price Sync:
+        - Price Sync. is better on XRPL 100% of the time.
+        - Price Sync. is better on XRPL-CAM 100% of the time.
+        - Price Sync. is better on XRPL-CAM than XRPL 80% of the time.
