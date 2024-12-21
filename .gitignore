@@ -170,4 +170,20 @@ poetry.toml
 # ruff
 .ruff_cache/
 
+# Ignore files
+*.parquet
+*.csv
+*.json
+
+# Ignore .DS_Store files
+.DS_Store
+
+# Ignore image files
+*.pdf
+*.png
+*.jpg
+
+# Ignore .idea folder
+.idea
+
 # End of https://www.toptal.com/developers/gitignore/api/python
