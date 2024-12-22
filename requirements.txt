@@ -1,0 +1,8 @@
+setuptools~=75.1.0
+matplotlib~=3.9.2
+seaborn~=0.13.2
+pandas~=2.2.3
+requests~=2.32.3
+fastparquet~=2024.11.0
+tqdm~=4.67.0
+sympy~=1.13.3
