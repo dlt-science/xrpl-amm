@@ -266,7 +266,7 @@ def main():
     #    We'll create separate dataframes for each metric.
     df_slippage = []
     df_price_impact = []
-    df_price_variation = []
+    df_price_synchronization = []
     df_divergence = []
 
     # To update the naming of the plots
@@ -296,7 +296,7 @@ def main():
                 )
             )
         if "price_variations" in scenario_data:
-            df_price_variation.append(
+            df_price_synchronization.append(
                 flatten_cdf_data(
                     scenario_data,
                     scenario_name,
@@ -313,8 +313,8 @@ def main():
     df_price_impact = (
         pd.concat(df_price_impact, ignore_index=True) if df_price_impact else None
     )
-    df_price_variation = (
-        pd.concat(df_price_variation, ignore_index=True) if df_price_variation else None
+    df_price_synchronization = (
+        pd.concat(df_price_synchronization, ignore_index=True) if df_price_synchronization else None
     )
     df_divergence = (
         pd.concat(df_divergence, ignore_index=True) if df_divergence else None
@@ -323,15 +323,15 @@ def main():
     # Save the dataframes
     df_slippage.to_csv(os.path.join(args.output_csv_dir, "slippage.csv"), index=False)
     df_price_impact.to_csv(os.path.join(args.output_csv_dir, "price_impact.csv"), index=False)
-    df_price_variation.to_csv(os.path.join(args.output_csv_dir, "price_variation.csv"), index=False)
+    df_price_synchronization.to_csv(os.path.join(args.output_csv_dir, "price_synchronization.csv"), index=False)
     df_divergence.to_csv(os.path.join(args.output_csv_dir, "divergence.csv"), index=False)
 
-    # Identify all scenarios that appear in df_price_variation.
+    # Identify all scenarios that appear in df_price_synchronization.
     # You can also define a manual order, e.g. scenario_order = ["test-2","test-1","xrpl_amm_dex-cam"]
-    scenario_order = df_price_variation["scenario"].unique().tolist()
+    scenario_order = df_price_synchronization["scenario"].unique().tolist()
 
     # -- Figure 1: Price Variation CDF --
-    gen_cdf_subplots(args, df_price_variation, scenario_order,
+    gen_cdf_subplots(args, df_price_synchronization, scenario_order,
                      filename="price_variation_cdf_subplots.pdf",
                      x_axis_label="Price Variation (%)")
 
@@ -340,7 +340,7 @@ def main():
         # # We can use seaborn’s ECDF plot to replicate a CDF:
         # #  “Price Variation (%)”
         # ax = sns.ecdfplot(
-        #     data=df_price_variation,
+        #     data=df_price_synchronization,
         #     x="value",
         #     # hue="protocol",
         #     linestyle="-",
