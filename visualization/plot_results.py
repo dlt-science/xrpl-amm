@@ -248,6 +248,14 @@ def main():
         default="./../simulation_results/figures",
         help="Directory to save the plots.",
     )
+
+    parser.add_argument(
+        "--output_csv_dir",
+        type=str,
+        default="./../simulation_results/test2/results",
+        help="Directory to save the dataframes.",
+    )
+
     args = parser.parse_args()
 
     # 1) Load the aggregated results
@@ -312,10 +320,15 @@ def main():
         pd.concat(df_divergence, ignore_index=True) if df_divergence else None
     )
 
+    # Save the dataframes
+    df_slippage.to_csv(os.path.join(args.output_csv_dir, "slippage.csv"), index=False)
+    df_price_impact.to_csv(os.path.join(args.output_csv_dir, "price_impact.csv"), index=False)
+    df_price_variation.to_csv(os.path.join(args.output_csv_dir, "price_variation.csv"), index=False)
+    df_divergence.to_csv(os.path.join(args.output_csv_dir, "divergence.csv"), index=False)
+
     # Identify all scenarios that appear in df_price_variation.
     # You can also define a manual order, e.g. scenario_order = ["test-2","test-1","xrpl_amm_dex-cam"]
     scenario_order = df_price_variation["scenario"].unique().tolist()
-
 
     # -- Figure 1: Price Variation CDF --
     gen_cdf_subplots(args, df_price_variation, scenario_order,
@@ -486,6 +499,7 @@ def main():
         plt.close()
 
     print(f"All plots saved to {args.output_dir}")
+
 
 
 if __name__ == "__main__":
